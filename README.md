@@ -32,3 +32,19 @@ These ten models are a starting set of frequently observed consumer drones, sele
 8. DJI Mavic 2 Pro
 9. DJI Avata 2
 10. DJI Mini 3 Pro
+
+## PyTorch starter
+
+This is a whole-image classification baseline. It needs labeled images before it can make useful predictions; it does not locate drones within an image yet.
+
+Record candidate image links in [`dataset/links.csv`](dataset/links.csv), then put reviewed training images in `data/train/<class_name>/`. See the [dataset guide](dataset/README.md) for labels and folder layout. Then run:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python train.py
+python predict.py path/to/image.jpg
+```
+
+Training saves the checkpoint to `artifacts/model.pt`. Both `data/` and `artifacts/` are ignored by Git.
