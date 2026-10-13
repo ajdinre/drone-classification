@@ -6,7 +6,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 
-from model import LABELS, build_model, transform
+from model import CLASSES, build_model, transform
 
 
 def main() -> None:
@@ -20,19 +20,19 @@ def main() -> None:
     if not args.data.is_dir():
         parser.error(f"training images not found: {args.data}")
 
-    dataset = ImageFolder(args.data, transform=transform)
-    unexpected = set(dataset.classes) - set(LABELS)
-    if unexpected:
-        parser.error(f"unknown class folders: {', '.join(sorted(unexpected))}")
-    if "no_drone" not in dataset.classes:
-        parser.error("add a no_drone folder with training images")
+    try:
+        dataset = ImageFolder(args.data, transform=transform)
+    except FileNotFoundError:
+        parser.error("add images to both data/train/drone and data/train/no_drone")
+    if dataset.classes != list(CLASSES):
+        parser.error("training folders must be named drone and no_drone")
 
     device = torch.device(
         "cuda" if torch.cuda.is_available() else
         "mps" if torch.backends.mps.is_available() else "cpu"
     )
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
-    model = build_model(len(dataset.classes), pretrained=True).to(device)
+    model = build_model(pretrained=True).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
     loss_fn = nn.CrossEntropyLoss()
 
@@ -49,10 +49,7 @@ def main() -> None:
         print(f"epoch {epoch + 1}/{args.epochs}: loss={total_loss / len(dataset):.4f}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(
-        {"state_dict": model.cpu().state_dict(), "classes": dataset.classes},
-        args.output,
-    )
+    torch.save(model.cpu().state_dict(), args.output)
     print(f"saved {args.output}")
 
 

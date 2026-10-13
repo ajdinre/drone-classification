@@ -3,20 +3,7 @@ from torchvision import transforms
 from torchvision.models import ResNet18_Weights, resnet18
 
 
-LABELS = {
-    "no_drone": None,
-    "unknown_drone": "unknown",
-    "dji_mini_4_pro": "DJI Mini 4 Pro",
-    "dji_air_3": "DJI Air 3",
-    "dji_mavic_3_pro": "DJI Mavic 3 Pro",
-    "dji_air_2s": "DJI Air 2S",
-    "dji_air_3s": "DJI Air 3S",
-    "dji_mavic_3": "DJI Mavic 3",
-    "dji_mavic_3_classic": "DJI Mavic 3 Classic",
-    "dji_mavic_2_pro": "DJI Mavic 2 Pro",
-    "dji_avata_2": "DJI Avata 2",
-    "dji_mini_3_pro": "DJI Mini 3 Pro",
-}
+CLASSES = ("drone", "no_drone")
 
 transform = transforms.Compose(
     [
@@ -30,8 +17,8 @@ transform = transforms.Compose(
 )
 
 
-def build_model(num_classes: int, *, pretrained: bool) -> nn.Module:
+def build_model(*, pretrained: bool) -> nn.Module:
     weights = ResNet18_Weights.DEFAULT if pretrained else None
     model = resnet18(weights=weights)
-    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    model.fc = nn.Linear(model.fc.in_features, len(CLASSES))
     return model
